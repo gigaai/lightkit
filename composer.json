@@ -2,7 +2,7 @@
     "name": "gigaai/lightkit",
     "description": "A Fast WP Development Kit",
     "type": "library",
-    "keywords": "wordpress",
+    "keywords": ["wordpress", "library", "plugin"],
     "homepage": "https://lightkit.giga.ai",
     "require": {
         "php": ">=5.6"
