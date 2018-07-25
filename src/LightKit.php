@@ -7,16 +7,14 @@ class LightKit
     /**
      * @var array
      */
-    public $config = [
-        'namespace' => 'giga-ai',
-    ];
+    public $config = [];
 
     /**
      * @param array $config
      */
     public function __construct($config = [])
     {
-        $this->config = $config;
+        $this->config = array_merge($config, $this->config);
 
         add_action('admin_print_footer_scripts', [$this, 'js_vars'], 9);
 
@@ -26,9 +24,10 @@ class LightKit
     public function js_vars()
     {
         $vars = apply_filters('lightkit_js_vars', [
-            'url'     => get_site_url(),
-            'restUrl' => get_rest_url(),
-            'nonce'   => wp_create_nonce('wp_rest'),
+            'url'       => get_site_url(),
+            'restUrl'   => get_rest_url(),
+            'nonce'     => wp_create_nonce('wp_rest'),
+            'pluginUrl' => $this->config['pluginUrl'],
         ]);
 
         echo "<script type='text/javascript'>\n";
@@ -38,29 +37,21 @@ class LightKit
 
     public function load_controllers()
     {
-        $plugins = get_option('active_plugins');
+        $controllers = glob($this->config['controllers_path'] . '/*.php');
 
-        foreach ($plugins as $plugin) {
-            $plugin_path = plugin_dir_path(WP_PLUGIN_DIR . '/' . $plugin);
+        foreach ($controllers as $controller) {
+            if ( ! file_exists($controller)) {
+                continue;
+            }
 
-            $controllers_path = $plugin_path . 'controllers';
-            $views_path       = $plugin_path . 'views';
-            $controllers      = glob($controllers_path . '/*.php');
+            require_once $controller;
 
-            foreach ($controllers as $controller) {
-                if ( ! file_exists($controller)) {
-                    continue;
-                }
+            $className = str_replace('.php', '', class_basename($controller));
+            $class     = "GigaAI\\Controller\\{$className}";
 
-                require_once $controller;
-
-                $className = str_replace('.php', '', class_basename($controller));
-                $class     = "LightKit\\Controller\\{$className}";
-
-                if (class_exists($class)) {
-                    $instance = new $class();
-                    $instance->set_views_path($views_path);
-                }
+            if (class_exists($class)) {
+                $instance = new $class();
+                $instance->set_views_path($this->config['views_path']);
             }
         }
     }

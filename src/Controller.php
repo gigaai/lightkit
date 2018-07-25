@@ -14,11 +14,6 @@ use GigaAI\Resolver\Resolver;
 abstract class Controller extends \WP_REST_Controller
 {
     /**
-     * @var string
-     */
-    public $namespace = 'giga-ai';
-
-    /**
      * @var array
      */
     public $resource = [];
