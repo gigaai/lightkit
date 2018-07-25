@@ -4,6 +4,7 @@
     "type": "library",
     "keywords": ["wordpress", "library", "plugin"],
     "homepage": "https://lightkit.giga.ai",
+    "license": "MIT",
     "require": {
         "php": ">=5.6"
     },
