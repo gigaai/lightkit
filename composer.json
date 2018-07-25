@@ -1,0 +1,18 @@
+{
+    "name": "gigaai/lightkit",
+    "description": "A Fast WP Development Kit",
+    "type": "library",
+    "keywords": "wordpress",
+    "homepage": "https://lightkit.giga.ai",
+    "require": {
+        "php": ">=5.6"
+    },
+    "autoload": {
+      "psr-4": {
+          "GigaAI\\": "src/"
+      },
+    "files": [
+        "src/helpers/helpers.php"
+    ]
+  }
+}
