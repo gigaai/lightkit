@@ -27,7 +27,7 @@ class LightKit
             'url'       => get_site_url(),
             'restUrl'   => get_rest_url(),
             'nonce'     => wp_create_nonce('wp_rest'),
-            'pluginUrl' => $this->config['pluginUrl'],
+            'pluginUrl' => $this->config['plugin_url'],
         ]);
 
         echo "<script type='text/javascript'>\n";
