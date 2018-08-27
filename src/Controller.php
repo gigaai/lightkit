@@ -2,7 +2,6 @@
 
 namespace GigaAI\LightKit;
 
-use App\User;
 use GigaAI\LightKit\Request;
 use GigaAI\Resolver\Resolver;
 
@@ -118,11 +117,6 @@ abstract class Controller extends \WP_REST_Controller
         }
     }
 
-    public function user()
-    {
-        return User::current();
-    }
-
     protected function init()
     {
         $this->request = Request::getInstance();
@@ -152,6 +146,10 @@ abstract class Controller extends \WP_REST_Controller
         return isset($this->resource['parent']) ? $this->resource['parent'] : $this->namespace;
     }
 
+    public function getResourceNamespace()
+    {
+        return isset($this->resource['namespace']) ? $this->resource['namespace'] : $this->getResourceName();
+    }
     /**
      * @param $parent
      */
@@ -214,7 +212,7 @@ abstract class Controller extends \WP_REST_Controller
         add_filter('wp_doing_ajax', '__return_true');
 
         // Then register routes for the AJAX. Basically
-        register_rest_route($this->namespace, '/' . $this->getResourceName(), [
+        register_rest_route($this->getResourceNamespace(), '/' . $this->getResourceName(), [
             [
                 'methods'  => \WP_REST_Server::READABLE,
                 'callback' => $this->handleCallback('index'),
@@ -225,7 +223,7 @@ abstract class Controller extends \WP_REST_Controller
             ],
         ]);
 
-        register_rest_route($this->namespace, '/' . $this->getResourceName() . '/(?P<id>[\d]+)', [
+        register_rest_route($this->getResourceNamespace(), '/' . $this->getResourceName() . '/(?P<id>[\d]+)', [
             [
                 'methods'  => \WP_REST_Server::READABLE,
                 'callback' => $this->handleCallback('edit'),
@@ -276,7 +274,7 @@ abstract class Controller extends \WP_REST_Controller
                 return $resolver->bind($params)->resolve([$this, $method]);
             };
         }
-
+        
         $params = $_REQUEST;
         $this->request->set($params);
         $params['request'] = $this->request;
