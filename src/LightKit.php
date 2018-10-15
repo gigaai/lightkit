@@ -35,24 +35,40 @@ class LightKit
         echo "\n</script>";
     }
 
+    /**
+     * Load Controllers with Priorities
+     */
     public function load_controllers()
     {
         $controllers = glob($this->config['controllers_path'] . '/*.php');
+    
+        $controllersPriorities = [];
+        $classes = [];
 
         foreach ($controllers as $controller) {
             if ( ! file_exists($controller)) {
                 continue;
             }
 
-            require_once $controller;
-
             $className = str_replace('.php', '', class_basename($controller));
-            $class     = "GigaAI\\Controller\\{$className}";
+            $className = "GigaAI\\Controller\\{$className}";
 
-            if (class_exists($class)) {
-                $instance = new $class();
-                $instance->set_views_path($this->config['views_path']);
+            if ($className === "GigaAI\\Controller\\Controller") {
+                array_unshift($classes, $className);
+                array_unshift($controllersPriorities, $controller);
+            } else {
+                $classes[] = $className;
+                $controllersPriorities[] = $controller;
             }
         }
+
+        array_map(function ($controller) {
+            require_once $controller;
+        }, $controllersPriorities);
+       
+        array_map(function ($class) {
+            $instance = new $class();
+            $instance->set_views_path($this->config['views_path']);
+        }, $classes);
     }
 }

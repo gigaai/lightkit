@@ -148,8 +148,17 @@ abstract class Controller extends \WP_REST_Controller
 
     public function getResourceNamespace()
     {
-        return isset($this->resource['namespace']) ? $this->resource['namespace'] : $this->getResourceName();
+        if (isset($this->resource['namespace'])) {
+            return $this->resource['namespace'];
+        }
+
+        if (isset($this->resource['parent'])) {
+            return $this->resource['parent'];
+        }
+
+        return $this->getResourceName();
     }
+
     /**
      * @param $parent
      */
