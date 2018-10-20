@@ -54,21 +54,19 @@ class LightKit
             $className = "GigaAI\\Controller\\{$className}";
 
             if ($className === "GigaAI\\Controller\\Controller") {
-                array_unshift($classes, $className);
                 array_unshift($controllersPriorities, $controller);
             } else {
                 $classes[] = $className;
                 $controllersPriorities[] = $controller;
             }
         }
-
+        
         array_map(function ($controller) {
             require_once $controller;
         }, $controllersPriorities);
        
         array_map(function ($class) {
-            $instance = new $class();
-            $instance->set_views_path($this->config['views_path']);
+            new $class();
         }, $classes);
     }
 }
