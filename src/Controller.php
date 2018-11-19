@@ -307,6 +307,11 @@ abstract class Controller extends \WP_REST_Controller
      */
     public function menu()
     {
+        
+        if (isset($this->resource['menu']) && $this->resource['menu'] === false) {
+            return;
+        }
+        
         if (isset($this->resource['is_parent']) && $this->resource['is_parent']) {
             add_menu_page(
                 $this->getResourceTitle(),
