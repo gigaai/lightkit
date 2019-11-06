@@ -50,7 +50,7 @@ class LightKit
                 continue;
             }
 
-            $className = str_replace('.php', '', class_basename($controller));
+            $className = str_replace('.php', '', basename($controller));
             $className = "GigaAI\\Controller\\{$className}";
 
             if ($className === "GigaAI\\Controller\\Controller") {
