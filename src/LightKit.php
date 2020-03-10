@@ -1,6 +1,6 @@
 <?php
 
-namespace GigaAI\Lightkit;
+namespace GigaAI\LightKit;
 
 class LightKit
 {
@@ -17,8 +17,6 @@ class LightKit
         $this->config = array_merge($config, $this->config);
 
         add_action('admin_print_footer_scripts', [$this, 'js_vars'], 9);
-
-        $this->load_controllers();
     }
 
     public function js_vars()
@@ -33,40 +31,5 @@ class LightKit
         echo "<script type='text/javascript'>\n";
         echo 'var LightKit = ' . wp_json_encode($vars) . ';';
         echo "\n</script>";
-    }
-
-    /**
-     * Load Controllers with Priorities
-     */
-    public function load_controllers()
-    {
-        $controllers = glob($this->config['controllers_path'] . '/*.php');
-    
-        $controllersPriorities = [];
-        $classes = [];
-
-        foreach ($controllers as $controller) {
-            if ( ! file_exists($controller)) {
-                continue;
-            }
-
-            $className = str_replace('.php', '', basename($controller));
-            $className = "GigaAI\\Controller\\{$className}";
-
-            if ($className === "GigaAI\\Controller\\Controller") {
-                array_unshift($controllersPriorities, $controller);
-            } else {
-                $classes[] = $className;
-                $controllersPriorities[] = $controller;
-            }
-        }
-        
-        array_map(function ($controller) {
-            require_once $controller;
-        }, $controllersPriorities);
-       
-        array_map(function ($class) {
-            new $class();
-        }, $classes);
     }
 }
