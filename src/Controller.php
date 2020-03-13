@@ -34,6 +34,10 @@ abstract class Controller extends \WP_REST_Controller
 
     public $pluginUrl = '';
 
+    public $redirecting = null;
+
+    public $isWithCalled = false;
+
     public function __construct()
     {
         $this->init();
@@ -99,6 +103,11 @@ abstract class Controller extends \WP_REST_Controller
                 $action = str_replace(['-', ' '], '_', $action);
 
                 return $this->handleCallback($action);
+            }
+
+            // These methods below needs to verify nonce
+            if ( ! wp_verify_nonce($request->get('lightkit_admin_submit'), 'lightkit_admin_submit') && ! $request->isMethod('get')) {
+                wp_die('Hacked huh?');
             }
 
             if ($request->isMethod('delete')) {
@@ -450,23 +459,19 @@ abstract class Controller extends \WP_REST_Controller
         return $this;
     }
 
-    public function back()
+    public function back($flashes = [])
     {
-        $referer = wp_get_referer();
-
-        wp_safe_redirect($referer);
-
-        exit;
+        return $this->redirect(wp_get_referer(), $flashes);
     }
 
     /**
      * @param $url
      */
-    public function redirect($url)
+    public function redirect($url, $flashes = [])
     {
-        wp_safe_redirect($url);
+        Cookie::flash($flashes);
 
-        exit;
+        return $this->setRedirecting($url);
     }
 
     public function url()
@@ -490,5 +495,42 @@ abstract class Controller extends \WP_REST_Controller
         }
 
         return admin_url('admin.php?' . http_build_query($params));
+    }
+
+    public function getRedirecting()
+    {
+        return $this->redirecting;
+    }
+
+    public function setRedirecting($redirecting)
+    {
+        $this->redirecting = $redirecting;
+
+        if ($this->isWithCalled) {
+            $this->doRedirect();
+        }
+
+        return $this;
+    }
+
+    public function with($key, $value = null)
+    {
+        $this->isWithCalled = true;
+
+        Cookie::flash($key, $value);
+
+        $this->doRedirect();
+
+        return $this;
+    }
+
+    public function doRedirect()
+    {
+        $redirecting = $this->getRedirecting();
+
+        if ($redirecting !== null) {
+            wp_redirect($redirecting);
+            exit;
+        }
     }
 }
