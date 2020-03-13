@@ -25,12 +25,14 @@ abstract class Controller extends \WP_REST_Controller
     /**
      * @var string
      */
-    public $views_path = '';
+    public $viewsPath = null;
 
     /**
      * @var mixed
      */
     private $handled = false;
+
+    public $pluginUrl = '';
 
     public function __construct()
     {
@@ -43,6 +45,37 @@ abstract class Controller extends \WP_REST_Controller
         add_action('rest_api_init', [$this, 'register_routes']);
 
         add_action('admin_init', [$this, 'handle_submit'], 99);
+
+        add_action('admin_print_footer_scripts', [$this, 'jsVars'], 9);
+    }
+
+    public function jsVars()
+    {
+        $vars = apply_filters('lightkit_js_vars', [
+            'url'       => get_site_url(),
+            'restUrl'   => get_rest_url(),
+            'nonce'     => wp_create_nonce('wp_rest'),
+            'pluginUrl' => $this->getPluginUrl(),
+        ]);
+
+        echo "<script type='text/javascript'>\n";
+        echo 'var LightKit = ' . wp_json_encode($vars) . ';';
+        echo "\n</script>";
+    }
+
+    public function getPluginUrl()
+    {
+        $urlToLightKitDir = plugin_dir_url(__DIR__);
+        $urlToPluginDir = substr($urlToLightKitDir, 0, 0 - strlen('vendor/gigaai/lightkit/'));
+
+        return $urlToPluginDir;
+    }
+
+    public function setPluginUrl($url)
+    {
+        $this->pluginUrl = $url;
+
+        return $this;
     }
 
     /**
@@ -283,7 +316,7 @@ abstract class Controller extends \WP_REST_Controller
                 return $resolver->bind($params)->resolve([$this, $method]);
             };
         }
-        
+
         $params = $_REQUEST;
         $this->request->set($params);
         $params['request'] = $this->request;
@@ -307,11 +340,10 @@ abstract class Controller extends \WP_REST_Controller
      */
     public function menu()
     {
-        
         if (isset($this->resource['menu']) && $this->resource['menu'] === false) {
             return;
         }
-        
+
         if (isset($this->resource['is_parent']) && $this->resource['is_parent']) {
             add_menu_page(
                 $this->getResourceTitle(),
@@ -341,17 +373,23 @@ abstract class Controller extends \WP_REST_Controller
     /**
      * @return mixed
      */
-    public function get_views_path()
+    public function getViewsPath()
     {
-        return $this->views_path;
+        $pathToLightKit = dirname(__FILE__);
+        $pathToPlugin = substr($pathToLightKit, 0, 0 - strlen('vendor/gigaai/lightkit/src'));
+        $viewsPath = $pathToPlugin . 'views';
+
+        return $viewsPath;
     }
 
     /**
      * @param $path
      */
-    public function set_views_path($path)
+    public function setViewsPath($path)
     {
-        $this->views_path = $path;
+        $this->viewsPath = $path;
+
+        return $this;
     }
 
     /**
@@ -359,12 +397,12 @@ abstract class Controller extends \WP_REST_Controller
      */
     protected function view($viewName, $data = [])
     {
-        $view_path = $this->get_views_path();
+        $viewsPath = $this->getViewsPath();
 
         // Replace the dot path if people using this
         $viewName = str_replace('.', '/', $viewName);
 
-        $viewNamePath = $view_path . '/' . $viewName . '.php';
+        $viewNamePath = $viewsPath . '/' . $viewName . '.php';
 
         // Let the plugin to add global variable
         $shared = apply_filters('view_share', []);
@@ -377,7 +415,9 @@ abstract class Controller extends \WP_REST_Controller
             ob_start();
             extract($data, EXTR_SKIP);
             try {
-                include $view;
+                if (file_exists($view)) {
+                    include $view;
+                }
             } catch (\Exception $e) {
                 ob_end_clean();
                 throw $e;
