@@ -328,34 +328,25 @@ abstract class Controller extends \WP_REST_Controller
     {
         $this->handled = true;
 
-        $resolver = new Resolver();
-
         if (wp_doing_ajax()) {
-            return function ($request) use ($resolver, $method) {
-                $id = $request->get_param('id');
-
+            return function ($request) use ($method) {
                 $params = $request->get_params();
                 $this->request->set($params);
-                $params['request'] = $this->request;
-                $params['settings'] = $this->setting;
 
-                if ($method === 'index' && $this->request->filled('action') && $this->request->action != false && $this->request->action != -1) {
-                    $method = $this->request->action;
-                }
-
-                if ($method === 'index' && $this->request->filled('action2') && $this->request->action2 != false && $this->request->action2 != -1) {
-                    $method = $this->request->action2;
-                }
-
-                $method = str_replace(['-', ' '], '_', $method);
-                $method = $method === 'delete' ? 'destroy' : $method;
-
-                return $resolver->bind($params)->resolve([$this, $method]);
+                return $this->resolveAndHandle($method, $params);
             };
         }
 
         $params = $_REQUEST;
         $this->request->set($params);
+
+        return $this->resolveAndHandle($method, $params);
+    }
+
+    private function resolveAndHandle($method, $params = [])
+    {
+        $resolver = new Resolver;
+
         $params['request'] = $this->request;
         $params['setting'] = $this->setting;
 

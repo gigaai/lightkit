@@ -11,7 +11,7 @@ class Setting
 
     public $options = [];
 
-    public function __construct($namespace)
+    public function __construct($namespace = null)
     {
         $this->namespace = $namespace;
     }
