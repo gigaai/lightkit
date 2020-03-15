@@ -18,9 +18,14 @@ abstract class Controller extends \WP_REST_Controller
     public $resource = [];
 
     /**
-     * @var mixed
+     * @var Request
      */
     public $request;
+
+    /**
+     * @var Setting
+     */
+    public $setting;
 
     /**
      * @var string
@@ -51,6 +56,26 @@ abstract class Controller extends \WP_REST_Controller
         add_action('admin_init', [$this, 'handle_submit'], 99);
 
         add_action('admin_print_footer_scripts', [$this, 'jsVars'], 9);
+
+        add_action('admin_notices', [$this, 'adminNotices']);
+    }
+
+    public function adminNotices()
+    {
+        // Todo: resolve cookie also
+        $status  = Cookie::get( 'status' );
+        $message = Cookie::get( 'message' );
+
+        if ( ! empty( $status ) && ! empty( $message ) ) :
+            ?>
+            <div id="message" class="notice notice-<?php echo esc_attr( $status ); ?> is-dismissible">
+                <p><?php echo esc_html( $message ); ?></p>
+                <button type="button" class="notice-dismiss">
+                    <span class="screen-reader-text"><?php _e( 'Dismiss this notice.', 'kelpee' ); ?></span>
+                </button>
+            </div>
+            <div class="clearfix"></div>
+        <?php endif;
     }
 
     public function jsVars()
@@ -167,6 +192,8 @@ abstract class Controller extends \WP_REST_Controller
         if (isset($_FILES) && ! empty($_FILES)) {
             $this->request->set($_FILES);
         }
+
+        $this->setting = new Setting($this->getResourceNamespace());
 
         do_action('giga_controller_pre_load');
 
@@ -310,6 +337,7 @@ abstract class Controller extends \WP_REST_Controller
                 $params = $request->get_params();
                 $this->request->set($params);
                 $params['request'] = $this->request;
+                $params['settings'] = $this->setting;
 
                 if ($method === 'index' && $this->request->filled('action') && $this->request->action != false && $this->request->action != -1) {
                     $method = $this->request->action;
@@ -329,6 +357,7 @@ abstract class Controller extends \WP_REST_Controller
         $params = $_REQUEST;
         $this->request->set($params);
         $params['request'] = $this->request;
+        $params['setting'] = $this->setting;
 
         if ($method === 'index' && $this->request->filled('action') && $this->request->action != false && $this->request->action != -1) {
             $method = $this->request->action;

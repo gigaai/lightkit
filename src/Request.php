@@ -123,11 +123,7 @@ class Request
             return strtolower($this->get('_method'));
         }
 
-        if ( ! empty($_POST)) {
-            return 'post';
-        }
-
-        return 'get';
+        return  ! empty($_POST) ? 'post' : 'get';
     }
 
     /**
