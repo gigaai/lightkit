@@ -1,4 +1,5 @@
 <?php
+
 namespace GigaAI\LightKit;
 
 class Setting
