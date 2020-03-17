@@ -114,6 +114,12 @@ abstract class Controller extends \WP_REST_Controller
     {
         $request = $this->request;
 
+        // Remove doubled _wp_http_referer
+        if ($request->has('_wp_http_referer')) {
+            wp_redirect(remove_query_arg(['_wp_http_referer']));
+            exit;
+        }
+
         if ($request->filled('page') && $request->is('page', $this->getResourceName())) {
 
             if ($request->filled('action') && $request->action != false && $request->action != -1 && ! $request->isMethod('get')) {
@@ -131,7 +137,11 @@ abstract class Controller extends \WP_REST_Controller
             }
 
             // These methods below needs to verify nonce
-            if ( ! wp_verify_nonce($request->get('lightkit_admin_submit'), 'lightkit_admin_submit') && ! $request->isMethod('get')) {
+            if (
+                $request->has('lightkit_admin_submit') &&
+                ! wp_verify_nonce($request->get('lightkit_admin_submit'), 'lightkit_admin_submit') &&
+                ! $request->isMethod('get')
+            ) {
                 wp_die('Hacked huh?');
             }
 
