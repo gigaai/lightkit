@@ -115,7 +115,7 @@ abstract class Controller extends \WP_REST_Controller
         $request = $this->request;
 
         // Remove doubled _wp_http_referer
-        if ($request->has('_wp_http_referer')) {
+        if ($request->has('_wp_http_referer') && $request->isMethod('get')) {
             wp_redirect(remove_query_arg(['_wp_http_referer']));
             exit;
         }

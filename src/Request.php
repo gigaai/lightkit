@@ -114,7 +114,7 @@ class Request
      */
     private function is($key, $value)
     {
-        return trim($this->$key) === $value;
+        return trim($this->$key) == $value;
     }
 
     private function getMethod()
